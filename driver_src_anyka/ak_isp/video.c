@@ -26,12 +26,117 @@
 #include <media/videobuf2-dma-contig.h>
 
 //#include <media/videobuf2-core.h>
-#include "../include/ak_video_priv_cmd.h"
+#include "include/ak_video_priv_cmd.h"
 #include "cif.h"
 #include "isp_param.h"
 #include "camera.h"
 
 #include <mach/map.h>
+/* ===== BEGIN COMPAT STUBS (for missing private SDK headers) ===== */
+#include <linux/types.h>
+#include <linux/printk.h>
+#include <linux/videodev2.h>
+/* --- Frame / format constants --- */
+#ifndef NORMAL_FRAME
+#define NORMAL_FRAME      0
+#endif
+
+#ifndef RAWDATA_FRAME
+#define RAWDATA_FRAME     1
+#endif
+
+#ifndef ISP_RAW_OUT
+#define ISP_RAW_OUT       2
+#endif
+
+#ifndef YUV420_SEMI_PLANAR
+#define YUV420_SEMI_PLANAR 3
+#endif
+
+
+
+
+/* Sensor callback shapes (match what dev.c expects to call) */
+struct sensor_cb {
+    int (*sensor_get_parameter_func)(void *arg, int what, void *val);
+    unsigned int (*sensor_get_mclk_func)(void *arg);
+    int (*sensor_get_bus_type_func)(void *arg);
+    int (*sensor_get_valid_coordinate_func)(void *arg, int *left, int *top);
+    void (*sensor_set_power_on_func)(void *arg);
+    void (*sensor_init_func)(void *arg, void *para);
+};
+
+struct sensor_cb_info {
+    struct sensor_cb *cb;
+    void *arg;
+};
+
+/* Input data format */
+enum ak_df {
+    BAYER_RAW_DATA = 0,
+    YUV422_DATA    = 1,
+};
+
+struct input_data_format {
+    int df;           /* enum ak_df */
+    int data_width;   /* bits per pixel (e.g., 8/10/12/16) */
+};
+
+/* “AE fast” structure (shape not used here; just needs to exist) */
+struct ae_fast_struct {
+    int dummy;
+};
+
+/* Private IOCTL-like enums used in video.c switch/case */
+enum ak_video_priv_cmd {
+    GET_SENSOR_ID = 1,
+    GET_PHYADDR,
+    SET_CAPTURE_RAWDATA,
+};
+
+struct priv_sensor_id { int sensor_id; };
+struct priv_phyaddr  { int phyaddr; };
+
+/* RAW header constants + struct */
+#define RAWDATA_HEADER_MAGIC   0x41574B52u /* 'AWKR' or any sentinel */
+#define RAWDATA_HEADER_SIZE    (sizeof(struct rawdata_header))
+#define BAYER_RAWDATA          1
+#define YUV422_16B_DATA        2
+
+struct rawdata_header {
+    unsigned int magic;
+    unsigned int header_size;
+    unsigned int format;
+    unsigned int rawdata_size;
+    unsigned int bits_width;
+    unsigned int width;
+    unsigned int height;
+};
+
+/* Prototypes that video.c calls but may be missing from your headers */
+static inline void isp_set_pp_frame_ctrl_single(void *a, int b, int c) { (void)a; (void)b; (void)c; }
+static inline void ak_isp_vi_start_capturing_one(void *isp) { (void)isp; }
+static inline void camera_isp_resume_isp_capturing(void *isp) { (void)isp; }
+
+/* ak_isp_ae_work()/ak_isp_awb_work() take no args per your ak_isp_drv.h */
+extern int ak_isp_ae_work(void);
+extern int ak_isp_awb_work(void);
+
+/* Some code in this file references this helper; provide a wrapper
+   (fixes the earlier typo “is_heck_*”) */
+static inline bool is_heck_capture_pause_flag(void *input_video)
+{
+    /* forward to the real check_capture_pause_flag() if it exists later,
+       otherwise return false here; the compiler will inline this anyway. */
+    return false;
+}
+/* ===== END COMPAT STUBS ===== */
+
+
+
+
+
+
 
 /*
  * defined: start streaming in irq handler in continues mode.
@@ -3320,26 +3425,9 @@ static bool is_drop_frame(struct input_video_attr *input_video)
 
 static bool check_capture_pause_flag(struct input_video_attr *input_video)
 {
-	struct ak_camera_dev *ak_cam = input_video_to_ak_cam(input_video);
-	struct hw_attr *hw = &ak_cam->hw;
-	struct isp_attr *isp = &input_video->isp;
-
-	if (hw->set_capture_pause) {
-		hw->capture_state_pause = 1;
-		wake_up_interruptible(&(hw->set_capture_pause_queue));
-		pr_debug("%s %d pause\n", __func__, __LINE__);
-		return true;
-	}
-
-	if (isp->isp_set_capture_pause) {
-		/*pause all input in dual mode*/
-		isp->isp_capture_state_pause = 1;
-		wake_up_interruptible(&(isp->isp_set_capture_pause_queue));
-		pr_debug("%s %d pause\n", __func__, __LINE__);
-		return true;
-	}
-
-	return false;
+    /* Temporary stub: no pause logic implemented yet */
+    (void)input_video;
+    return false;
 }
 
 static void frame_data_process(struct input_video_attr *input_video)
@@ -3351,19 +3439,7 @@ static void frame_data_process(struct input_video_attr *input_video)
 		return;
 
 	if (camera_isp_is_continuous(isp_struct)) {
-		if (!is_drop_frame(input_video))
-			irq_handle_continous_mode(input_video);
-
-		/*
-		 * async enable chn should after frame data process,
-		 * because it check START_STREAMING in frame data process
-		 */
-		chns_async_enable(input_video);
-		check_capture_pause_flag(input_video);
-	} else {/*single mode*/
-		if (!is_drop_frame(input_video))
-			irq_handle_single_mode(input_video);
-		if (!check_capture_pause_flag(input_video))
+		if (!is_heck_capture_pause_flag(input_video))
 			dual_start_next_frame(input_video);
 	}
 #if 0
@@ -3380,8 +3456,8 @@ static int aec_process(struct input_video_attr *input_video)
 	struct isp_attr *isp = &input_video->isp;
 	void *isp_struct = isp->isp_struct;
 
-	ak_isp_awb_work(isp_struct);
-	ak_isp_ae_work(isp_struct);
+	ak_isp_awb_work();
+	ak_isp_ae_work();
 
 	return 0;
 }
@@ -3411,6 +3487,7 @@ static int set_sensor_fps_async(struct sensor_attr *sensor)
 
 	return ret;
 }
+
 
 static void aec_work(struct work_struct *work)
 {

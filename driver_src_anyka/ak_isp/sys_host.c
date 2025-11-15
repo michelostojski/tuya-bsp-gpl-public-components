@@ -34,8 +34,8 @@
 #include <media/v4l2-device.h>
 #include <media/videobuf2-dma-contig.h>
 
-#include "../include/ak_isp_drv.h"
-#include "../include/ak_video_priv_cmd.h"
+#include "include/ak_isp_drv.h"
+#include "include/ak_video_priv_cmd.h"
 #include "include_internal/ak_video_priv_cmd_internal.h"
 #include "cif.h"
 #include <mach/map.h>

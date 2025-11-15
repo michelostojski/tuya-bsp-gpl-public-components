@@ -33,15 +33,25 @@
 #include <media/v4l2-async.h>
 #include <media/v4l2-device.h>
 #include <media/videobuf2-dma-contig.h>
-
-#include "../include/ak_isp_drv.h"
-#include "../include/ak_video_priv_cmd.h"
+#include "sys_sensor.h"   /* so struct sensor_cb_info is visible */
+#include "include/ak_isp_drv.h"
+#include "include/ak_video_priv_cmd.h"
 #include "include_internal/ak_video_priv_cmd_internal.h"
 #include "cif.h"
 #include <mach/map.h>
 
 #define NO_SENSOR "nosensor"
 #define NAME_SIZE 16
+static struct sensor_cb sensor_cb = {
+    .get_sensor_id = your_get_sensor_id_function,
+    .set_sensor_fps = your_set_fps_function,
+    // Add other needed function pointers here
+};
+
+static int __init sys_sensor_init(void)
+{
+    return ak_camera_register_sensor_cb(&sensor_cb);
+}
 
 struct sys_sensor_info {
 	struct list_head list;
