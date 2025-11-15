@@ -37,15 +37,15 @@
 
 #include <media/v4l2-ioctl.h>
 #include <media/videobuf2-dma-contig.h>
-
+#include "ak_isp_compat.h"
 /*#include "../media/video/plat-anyka/ak39_isp2.h"
 #include "../media/video/plat-anyka/ak39_isp2_3a.h"
 #include "../media/video/plat-anyka/ak39_isp2_reg.h"
 */
-#include "../include/ak_isp_drv.h"
+#include "include/ak_isp_drv.h"
 //#include <plat-anyka/ak_sensor.h>
 //#include <plat-anyka/ak_camera.h>
-#include "../include/ak_isp_char.h"
+#include "include/ak_isp_char.h"
 #include "cif.h"
 #include "isp_param.h"
 #include "isp_stats.h"
@@ -764,8 +764,7 @@ static int isp_stats_mbus_to_pix(const struct isp_stats_chn_attr *chn,
 				int height_block_num;
 				int block_size;
 
-				ak_isp_get_md_array_max_size(isp_struct,
-						&width_block_num, &height_block_num, &block_size);
+				ak_isp_get_md_array_max_size(&width_block_num, &height_block_num, &block_size);
 				pix->width = width_block_num;
 				pix->height = height_block_num;
 				pix->bytesperline = pix->width* block_size;
@@ -1260,8 +1259,8 @@ static void store_stats(struct isp_stats_chn_attr *chn, void *stats_vaddr)
 				int height_block_num;
 				int block_size;
 
-				ak_isp_get_mdinfo(isp_struct, &_3d_nr_stat_para,
-						&width_block_num, &height_block_num, &block_size);
+				ak_isp_get_mdinfo(isp_struct, &_3d_nr_stat_para, &width_block_num, &height_block_num, &block_size);
+
 				header = stats_vaddr;
 				header->magic			= STATS_3DNR_MAGIC;
 				header->version			= STATS_3DNR_VERSION;
@@ -1280,7 +1279,7 @@ static void store_stats(struct isp_stats_chn_attr *chn, void *stats_vaddr)
 				struct isp_stats_awb_header *header;
 
 				p_awb_stat_info = stats_vaddr + STATS_HEADER_SIZE;
-				ak_isp_vp_get_awb_stat_info(isp_struct, p_awb_stat_info);
+				ak_isp_vp_get_awb_stat_info(p_awb_stat_info);
 				header = stats_vaddr;
 				header->magic			= STATS_AWB_MAGIC;
 				header->version			= STATS_AWB_VERSION;
@@ -1293,7 +1292,7 @@ static void store_stats(struct isp_stats_chn_attr *chn, void *stats_vaddr)
 				struct isp_stats_af_header *header;
 
 				p_af_stat_info = stats_vaddr + STATS_HEADER_SIZE;
-				ak_isp_vp_get_af_stat_info(isp_struct, p_af_stat_info);
+				ak_isp_vp_get_af_stat_info(p_af_stat_info);
 				header = stats_vaddr;
 				header->magic			= STATS_AF_MAGIC;
 				header->version			= STATS_AF_VERSION;
@@ -1311,8 +1310,8 @@ static void store_stats(struct isp_stats_chn_attr *chn, void *stats_vaddr)
 
 				ae_attr = stats_vaddr + ae_attr_offset;
 				ae_run = stats_vaddr + ae_run_offset;
-				ak_isp_vp_get_ae_attr(isp_struct, ae_attr);
-				ak_isp_vp_get_ae_run_info(isp_struct, ae_run);
+				ak_isp_vp_get_ae_attr(ae_attr);
+				ak_isp_vp_get_ae_run_info(ae_run);
 				header = stats_vaddr;
 				header->magic			= STATS_AE_MAGIC;
 				header->version			= STATS_AE_VERSION;

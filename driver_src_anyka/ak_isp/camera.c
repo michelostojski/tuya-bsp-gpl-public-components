@@ -19,26 +19,40 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA
  */
+ 
+ /* --- Compatibility stubs for newer ak_isp_drv.h API --- */
+#ifndef AK_ISP_COMPAT_STUBS
+#define AK_ISP_COMPAT_STUBS
+
+/* If driver header defines no-arg versions, wrap them */
+
+
+
+/* Add similar wrappers if more mismatched calls show up */
+#endif /* AK_ISP_COMPAT_STUBS */
+
+ 
 #include <mach/map.h>
 #include <linux/printk.h>
 #include <asm/io.h>
 
-#include "../include/ak_isp_drv.h"
+#include "ak_isp_compat.h"
 #include "camera.h"
+
 
 int camera_isp_get_bits_width(void *isp_struct)
 {
-	return ak_isp_get_bits_width(isp_struct);
+	return ak_isp_get_bits_width_compat(isp_struct);
 }
 
 AK_ISP_PCLK_POLAR camera_isp_get_pclk_polar(void *isp_struct)
 {
-	return ak_isp_get_pclk_polar(isp_struct);
+	return ak_isp_get_pclk_polar_compat(isp_struct);
 }
 
 int camera_isp_vi_apply_mode(void *isp_struct,enum isp_working_mode mode)
 {
-	return ak_isp_vi_apply_mode(isp_struct, mode);
+	return ak_isp_vi_apply_mode_compat(isp_struct, mode);
 }
 
 int camera_isp_vo_enable_target_lines_done(void *isp_struct, int lines)
@@ -48,42 +62,42 @@ int camera_isp_vo_enable_target_lines_done(void *isp_struct, int lines)
 
 int camera_isp_vo_enable_irq_status(void *isp_struct, int bit)
 {
-	return ak_isp_vo_enable_irq_status(isp_struct, bit);
+	return ak_isp_vo_enable_irq_status_compat(isp_struct, bit);
 }
 
 int camera_isp_vi_start_capturing(void *isp_struct, int yuv420_type)
 {
-	return ak_isp_vi_start_capturing(isp_struct, yuv420_type);
+	return ak_isp_vi_start_capturing_compat(isp_struct, yuv420_type);
 }
 
 int camera_isp_vo_set_main_channel_scale(void *isp_struct, int width, int height)
 {
-	return ak_isp_vo_set_main_channel_scale(isp_struct, width, height);
+	return ak_isp_vo_set_main_channel_scale_compat(isp_struct, width, height);
 }
 
 int camera_isp_vo_set_sub_channel_scale(void *isp_struct, int width, int height)
 {
-	return ak_isp_vo_set_sub_channel_scale(isp_struct, width, height);
+	return ak_isp_vo_set_sub_channel_scale_compat(isp_struct, width, height);
 }
 
 int camera_isp_vi_set_crop(void *isp_struct, int sx, int sy, int width, int height)
 {
-	return ak_isp_vi_set_crop(isp_struct, sx, sy, width, height);
+	return ak_isp_vi_set_crop_compat(isp_struct, sx, sy, width, height);
 }
 
 int camera_isp_vi_stop_capturing(void *isp_struct)
 {
-	return ak_isp_vi_stop_capturing(isp_struct);
+	return ak_isp_vi_stop_capturing_compat(isp_struct);
 }
 
 int camera_isp_set_td(void *isp_struct)
 {
-	return ak_isp_set_td(isp_struct);
+	return ak_isp_set_td_compat(isp_struct);
 }
 
 int camera_isp_reload_td(void *isp_struct)
 {
-	return ak_isp_reload_td(isp_struct);
+	return ak_isp_reload_td_compat(isp_struct);
 }
 
 int camera_isp_vo_set_main_buffer_addr
@@ -142,12 +156,12 @@ int camera_isp_vo_enable_buffer_ch3(void *isp_struct, enum buffer_id id)
 
 int camera_isp_is_continuous(void *isp_struct)
 {
-	return ak_isp_is_continuous(isp_struct);
+	return ak_isp_is_continuous_compat(isp_struct);
 }
 
 int camera_isp_irq_work(void *isp_struct)
 {
-	return ak_isp_irq_work(isp_struct);
+	return ak_isp_irq_work_compat(isp_struct);
 }
 
 int camera_isp_vo_get_using_frame_main_buf_id(void *isp_struct)
@@ -192,7 +206,7 @@ int camera_isp_vo_check_update_status(void *isp_struct)
 
 int camera_isp_vo_check_irq_status (void *isp_struct)
 {
-	return ak_isp_vo_check_irq_status(isp_struct);
+	return ak_isp_vo_check_irq_status_compat(isp_struct);
 }
 
 int camera_isp_vo_clear_update_status(void *isp_struct, int bit)
@@ -202,17 +216,17 @@ int camera_isp_vo_clear_update_status(void *isp_struct, int bit)
 
 int camera_isp_vo_clear_irq_status(void *isp_struct, int bit)
 {
-	return ak_isp_vo_clear_irq_status(isp_struct, bit);
+	return ak_isp_vo_clear_irq_status_compat(isp_struct, bit);
 }
 
 int camera_isp_pause_isp_capturing(void *isp_struct)
 {
-	return ak_isp_set_isp_capturing(isp_struct, 0);
+	return ak_isp_set_isp_capturing_compat(isp_struct, 0);
 }
 
 int camera_isp_resume_isp_capturing(void *isp_struct)
 {
-	return ak_isp_set_isp_capturing(isp_struct, 1);
+	return ak_isp_set_isp_capturing_compat(isp_struct, 1);
 }
 
 int camera_isp_vi_get_input_data_format(void *isp_struct, struct input_data_format *idf)
@@ -798,4 +812,32 @@ void camera_ctrl_clks_reset(void)
 	value &= ~(1<<19);
 	__raw_writel(value, AK_VA_SYSCTRL + 0x20);
 }
+
+extern int ak_isp_get_pclk_polar_compat(void *ctx);
+extern int ak_isp_vi_apply_mode_compat(void *ctx, int mode);
+extern int ak_isp_vo_enable_irq_status_compat(void *ctx, int bit);
+extern int ak_isp_vi_start_capturing_compat(void *ctx, int yuv420_type);
+extern int ak_isp_vo_set_main_channel_scale_compat(void *ctx, int width, int height);
+extern int ak_isp_vo_set_sub_channel_scale_compat(void *ctx, int width, int height);
+extern int ak_isp_vi_set_crop_compat(void *ctx, int sx, int sy, int width, int height);
+extern int ak_isp_vi_stop_capturing_compat(void *ctx);
+extern int ak_isp_set_td_compat(void *ctx);
+extern int ak_isp_reload_td_compat(void *ctx);
+extern int ak_isp_enable_buffer_main(void *ctx);
+extern int ak_isp_enable_buffer_sub(void *ctx);
+extern int ak_isp_enable_buffer_ch3(void *ctx);
+extern int ak_isp_vo_enable_buffer_main(void *ctx, int id);
+extern int ak_isp_vo_enable_buffer_sub(void *ctx, int id);
+extern int ak_isp_vo_enable_buffer_ch3(void *ctx, int id);
+extern int ak_isp_is_continuous_compat(void *ctx);
+extern int ak_isp_irq_work_compat(void *ctx);
+extern int ak_isp_vo_disable_buffer_main(void *ctx, int id);
+extern int ak_isp_vo_disable_buffer_sub(void *ctx, int id);
+extern int ak_isp_vo_disable_buffer_ch3(void *ctx, int id);
+extern int ak_isp_vo_check_update_status(void *ctx);
+extern int ak_isp_vo_check_irq_status_compat(void *ctx);
+extern int ak_isp_vo_clear_update_status(void *ctx, int bit);
+extern int ak_isp_vo_clear_irq_status_compat(void *ctx, int bit);
+extern int ak_isp_set_isp_capturing_compat(void *ctx, int flag);
+
 

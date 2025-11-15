@@ -19,6 +19,23 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA
  */
+/*
+ * dev.c
+ *
+ * master interface for isp device
+ *
+ * Copyright (C) 2020 anyka
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ */
+
 #include <linux/init.h>
 #include <linux/module.h>
 //#include <linux/videodev2.h>
@@ -42,11 +59,11 @@
 #include <media/v4l2-device.h>
 #include <media/videobuf2-dma-contig.h>
 #endif
-#include <linux/of_graph.h>
 
+#include <linux/of_graph.h>
 #include <mach/map.h>
 
-/*private camere include files*/
+/* private camera include files */
 #if 0
 #include "include/ak_isp_drv.h"
 #include "include/ak_video_priv_cmd.h"
@@ -55,14 +72,24 @@
 #include "ak_host.h"
 #else
 #include "cif.h"
-#include "../include/ak_video_priv_cmd.h"
+#include "include/ak_video_priv_cmd.h"
+#include <linux/pinctrl/consumer.h>
+
 #include "video.h"
 #include "isp_param.h"
 #include "isp_stats.h"
 #include "sys_isp.h"
 #include "sys_host.h"
 #include "sys_sensor.h"
+
+/* --- Fallback hardware base definitions (if not defined by SoC headers) --- */
+#ifndef AK_VA_MIPI1
+#define AK_VA_MIPI1  0x20100000  /* Base address for MIPI controller */
 #endif
+
+#endif  /* <-- THIS closes the earlier #if 0 / #else block */
+
+
 
 static unsigned long internal_pclk = 75000000;//defalut 75MHz
 module_param(internal_pclk, ulong, S_IRUGO);
@@ -704,8 +731,8 @@ static int ak_camera_probe(struct platform_device *pdev)
 	init_waitqueue_head(&(hw->capture_rawdata_wait_queue));
 #endif
 
-	pr_debug("%s %s %s\n", __func__, __DATE__, __TIME__);
-
+	
+        pr_debug("%s\n", __func__);
 	/*parse video node*/
 	ret = of_parse_nodes(&pdev->dev, &hw->notifier);
 	if (ret < 0) {

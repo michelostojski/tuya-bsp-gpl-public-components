@@ -21,7 +21,17 @@
  */
 #ifndef __CAMERA_H__
 #define __CAMERA_H__
+#include "ak_isp_drv.h"
+typedef enum {
+    ISP_MODE_PREVIEW,
+    ISP_MODE_CAPTURE
+} isp_working_mode;
 
+typedef enum {
+    BUFFER_ID_MAIN,
+    BUFFER_ID_SUB,
+    BUFFER_ID_CH3
+} buffer_id;
 enum mipi_port {
 	MIPI_PORT_0 = 0,
 	MIPI_PORT_1,
@@ -85,10 +95,11 @@ int camera_isp_vo_check_irq_status (void *isp_struct);
 int camera_isp_vo_clear_update_status(void *isp_struct, int bit);
 int camera_isp_vo_clear_irq_status(void *isp_struct, int bit);
 int camera_isp_pause_isp_capturing(void *isp_struct);
-int camera_isp_resume_isp_capturing(void *isp_struct);
+struct input_data_format;
 int camera_isp_vi_get_input_data_format(void *isp_struct, struct input_data_format *idf);
 int camera_isp_vi_get_crop(void *isp_struct, int *sx, int *sy, int *width, int *height);
 int camera_isp_set_misc_attr_ex(void *isp_struct, int oneline, int fsden, int hblank, int fsdnum);
+struct ae_fast_struct;
 int camera_isp_set_ae_fast_struct_default(void *isp_struct, struct ae_fast_struct *ae_fast);
 
 /**************************************

@@ -21,14 +21,13 @@
  */
 #ifndef __CIF_H__
 #define __CIF_H__
-
 #include <linux/videodev2.h>
 
 #include <media/videobuf2-v4l2.h>
 #include <media/v4l2-device.h>
 #include <media/v4l2-dev.h>
 
-#include "../include/ak_isp_drv.h"
+#include "include/ak_isp_drv.h"
 #include "include_internal/ak_video_priv_cmd_internal.h"
 
 #define AK_CAM_DRV_NAME "ak-camera"
